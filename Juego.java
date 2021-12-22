@@ -8,6 +8,8 @@ class Juego{
 	private int cantidadCartasTotal=Config.cantidadCartasNaipe;
 	private int cantidadCartasRestantes;
 	private int cartaNumeroPozo;
+        private int plusTwo=0;
+        private int plusFour=0;
 
 	Juego(int cantidadJugadores){
 		this.mazo=new Naipe();
@@ -93,20 +95,49 @@ class Juego{
 		// Por ahora está en un ciclo infinito
 		// se muestra la carta del pozo y se juega por el usuario
 		// y luego juega el computador, está solo con dos jugadores
+                if (mazo.getCarta(cartaNumeroPozo).getColor().equals("Especial")){// Según las reglas si al comenzar aparece una carta de cambio de color se regresa al mazo y se saca otra carta. https://ep01.epimg.net/verne/imagenes/2019/05/11/articulo/1557592044_483049_1557658849_sumario_normal.jpg
+                    while (mazo.getCarta(cartaNumeroPozo).getColor().equals("Especial"))
+                        this.cartaNumeroPozo=generarCarta();
+                }
+                if (mazo.getCarta(cartaNumeroPozo).getValor().equals("+2"))
+                    this.plusTwo=1;
+                                            
 		while(!ganador){
 			System.out.print("\033[H\033[2J");
         	System.out.flush();
+                        System.out.println("Bot "+jugadores[1].getMano().largo());//Borrar
+                        System.out.println("Human "+jugadores[0].getMano().largo());//Borrar
+                        System.out.println("+2 acumuladas "+this.plusTwo);//Borrar
+                        System.out.println("+4 acumuladas "+this.plusFour);//Borrar                        
 			System.out.println("La carta del pozo es:");
 			mostrarPozo(mazo.getCarta(this.cartaNumeroPozo));
+                        if (jugadores[1].getMano().largo()==0){
+                            System.out.println("HAS PERDIDO.");
+                            System.out.println("FIN DE LA PARTIDA.");
+                            ganador=true;
+                            break;
+                        }                        
 			System.out.println("Presione enter para continuar");
 			teclado.nextLine();
 
+
+
 			//Jugada del jugador usuario
 			jugada(0);
+                        System.out.println("+2 acumuladas "+this.plusTwo);//Borrar
+                        System.out.println("+4 acumuladas "+this.plusFour);//Borrar                          
 			System.out.println("La carta del pozo es:");
 			mostrarPozo(mazo.getCarta(this.cartaNumeroPozo));
+                        if (jugadores[0].getMano().largo()==0){
+                            System.out.println("HAS GANADO!.");
+                            System.out.println("FIN DE LA PARTIDA.");
+                            ganador=true;
+                            break;
+                        }                        
 			System.out.println("Presione enter para continuar");			
 			teclado.nextLine();
+
+
 			
 			//Jugada del jugador Computador
 			jugada(1);
@@ -138,10 +169,38 @@ class Juego{
 		Carta carta;
 		boolean flag=false;
 		Scanner teclado = new Scanner(System.in);
-		//valida que el jugador tenga al menos una carta válida pra jugar
+                //Valida si hay una carta de +2 o +4, si es así toma cartas y pierde el turno en caso de no tener cartas para responder 
+                if (this.plusFour>0 || this.plusTwo>0){
+                    if (!validarMano(jugadores[jugador].getMano())){//Esto dara como valida para responder una carta de cambio de color a un +4 hay que arreglarlo.
+                        if (this.plusTwo>0){
+                            System.out.println("El jugador "+jugador+" toma "+(2*plusTwo)+" cartas y pierde su turno.");
+                            for (int i=0;i<2*plusTwo;i++){
+                                cartaNumero=generarCarta();
+                                robarCarta(jugador,cartaNumero);
+                            }
+                            this.plusTwo=0;
+                            return;
+                        }
+                        else {
+                            if (this.plusFour>0){
+                                System.out.println("El jugador "+jugador+" toma "+(4*plusFour)+" cartas y pierde su turno.");
+                                for (int i=0;i<4*plusFour;i++){
+                                    cartaNumero=generarCarta();
+                                    robarCarta(jugador,cartaNumero);
+                                }
+                                this.plusFour=0;
+                                return;
+                            }
+                        }
+                    }
+                    
+                }
+		//valida que el jugador tenga al menos una carta válida para jugar
 		if(validarMano(jugadores[jugador].getMano())){
 			System.out.println("Es el turno del jugador "+jugador);
 			if(jugador==0){
+                            if (jugadores[jugador].getMano().largo()==1)
+                                    System.out.println("UNO!");
 				while(!flag){ //repite hasta que seleccione una carta válida
 					cartaNumero=seleccionarCarta();
 					if(validarJugada(cartaNumero)){
@@ -151,7 +210,10 @@ class Juego{
 					}
 				}
 			}else{
-				cartaNumero=generarJugada(jugador);
+				if (jugadores[jugador].getMano().largo()==1){
+                                    System.out.println("UNO!");
+                                }
+                                cartaNumero=generarJugada(jugador);
 			}
 			this.cartaNumeroPozo=cartaNumero;//
 			this.mazo.setUso(cartaNumero);//
@@ -240,7 +302,9 @@ class Juego{
 
 			if(mazo.getCarta(cartaNumeroJugada).getValor().compareTo(mazo.getCarta(this.cartaNumeroPozo).getValor())==0){
 				//System.out.println("Jugada por valor");
-				flag=true;
+				if(mazo.getCarta(cartaNumeroJugada).getValor().equals("+2"))
+                                    this.plusTwo+=1;
+                                flag=true;
 			}
 			if(mazo.getCarta(cartaNumeroJugada).getColor().compareTo(mazo.getCarta(this.cartaNumeroPozo).getColor())==0){
 				//System.out.println("Jugada por color");
@@ -248,6 +312,8 @@ class Juego{
 			}
 			if(mazo.getCarta(cartaNumeroJugada).getColor().compareTo("Especial")==0){
 				//System.out.println("Jugada por carta especial");
+                                if(mazo.getCarta(cartaNumeroJugada).getValor().equals("+4"))
+                                    this.plusFour+=1;
 				flag=true;
 			}
 		}
@@ -266,7 +332,7 @@ class Juego{
 	}
 	// Método permite a un jugador no computador seleccionar la carta que desea
 	// jugar, se retorna el número de la carta seleccionada de su mano
-	private int seleccionarCarta(){
+	private int seleccionarCarta(){//limitar el numero al largo de la mano 
 		Scanner teclado = new Scanner(System.in);
 		String input;
 		int carta;
@@ -278,8 +344,9 @@ class Juego{
 		carta = Integer.parseInt(input);
 		return jugadores[0].getMano().getNumeroCarta(carta-1);
 	}
-	// Método que asigna una carta a un jugador y la agrega a su mano
-	private void robarCarta(int jugador,int cartaNumero){
+        
+        // Método que asigna una carta a un jugador y la agrega a su mano
+        private void robarCarta(int jugador,int cartaNumero){
 		this.jugadores[jugador].getMano().agregarCarta(this.mazo.getCarta(cartaNumero),cartaNumero);
 		this.mazo.setJugadorAsignado(cartaNumero,jugador);
 	}
