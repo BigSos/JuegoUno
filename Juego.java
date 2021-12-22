@@ -104,11 +104,7 @@ class Juego{
                                             
 		while(!ganador){
 			System.out.print("\033[H\033[2J");
-        	System.out.flush();
-                        System.out.println("Bot "+jugadores[1].getMano().largo());//Borrar
-                        System.out.println("Human "+jugadores[0].getMano().largo());//Borrar
-                        System.out.println("+2 acumuladas "+this.plusTwo);//Borrar
-                        System.out.println("+4 acumuladas "+this.plusFour);//Borrar                        
+        	System.out.flush();                        
 			System.out.println("La carta del pozo es:");
 			mostrarPozo(mazo.getCarta(this.cartaNumeroPozo));
                         if (jugadores[1].getMano().largo()==0){
@@ -123,9 +119,7 @@ class Juego{
 
 
 			//Jugada del jugador usuario
-			jugada(0);
-                        System.out.println("+2 acumuladas "+this.plusTwo);//Borrar
-                        System.out.println("+4 acumuladas "+this.plusFour);//Borrar                          
+			jugada(0);                        
 			System.out.println("La carta del pozo es:");
 			mostrarPozo(mazo.getCarta(this.cartaNumeroPozo));
                         if (jugadores[0].getMano().largo()==0){
@@ -171,7 +165,7 @@ class Juego{
 		Scanner teclado = new Scanner(System.in);
                 //Valida si hay una carta de +2 o +4, si es así toma cartas y pierde el turno en caso de no tener cartas para responder 
                 if (this.plusFour>0 || this.plusTwo>0){
-                    if (!validarMano(jugadores[jugador].getMano())){//Esto dara como valida para responder una carta de cambio de color a un +4 hay que arreglarlo.
+                    if (!validarMano(jugadores[jugador].getMano())){//Esto dara como valida para responder una carta de cambio de color a un +4 hay que arreglarlo. Tambien permite responder +2 con cartas que sean del mismo color, habrá que crear un validar +2 y +4.
                         if (this.plusTwo>0){
                             System.out.println("El jugador "+jugador+" toma "+(2*plusTwo)+" cartas y pierde su turno.");
                             for (int i=0;i<2*plusTwo;i++){
