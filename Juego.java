@@ -104,14 +104,14 @@ class Juego{
                                             
 		while(!ganador){
 			System.out.print("\033[H\033[2J");
-        	System.out.flush();                        
+                        System.out.flush();                       
 			System.out.println("La carta del pozo es:");
 			mostrarPozo(mazo.getCarta(this.cartaNumeroPozo));
                         if (jugadores[1].getMano().largo()==0){
                             System.out.println("HAS PERDIDO.");
                             System.out.println("FIN DE LA PARTIDA.");
                             ganador=true;
-                            break;
+                            continue;
                         }                        
 			System.out.println("Presione enter para continuar");
 			teclado.nextLine();
@@ -119,14 +119,18 @@ class Juego{
 
 
 			//Jugada del jugador usuario
-			jugada(0);                        
+                        //Valida si hay una carta de +2 o +4
+                        if (this.plusFour>0 || this.plusTwo>0)
+                            jugadaSP(0);
+                        else
+                            jugada(0);                         
 			System.out.println("La carta del pozo es:");
 			mostrarPozo(mazo.getCarta(this.cartaNumeroPozo));
                         if (jugadores[0].getMano().largo()==0){
                             System.out.println("HAS GANADO!.");
                             System.out.println("FIN DE LA PARTIDA.");
                             ganador=true;
-                            break;
+                            continue;
                         }                        
 			System.out.println("Presione enter para continuar");			
 			teclado.nextLine();
@@ -134,7 +138,11 @@ class Juego{
 
 			
 			//Jugada del jugador Computador
-			jugada(1);
+                        //Valida si hay una carta de +2 o +4
+                        if (this.plusFour>0 || this.plusTwo>0)
+                            jugadaSP(1);
+                        else
+                            jugada(1);                        
 			//System.out.print("\033[H\033[2J");
         	//System.out.flush();
 		}
@@ -163,32 +171,6 @@ class Juego{
 		Carta carta;
 		boolean flag=false;
 		Scanner teclado = new Scanner(System.in);
-                //Valida si hay una carta de +2 o +4, si es así toma cartas y pierde el turno en caso de no tener cartas para responder 
-                if (this.plusFour>0 || this.plusTwo>0){
-                    if (!validarMano(jugadores[jugador].getMano())){//Esto dara como valida para responder una carta de cambio de color a un +4 hay que arreglarlo. Tambien permite responder +2 con cartas que sean del mismo color, habrá que crear un validar +2 y +4.
-                        if (this.plusTwo>0){
-                            System.out.println("El jugador "+jugador+" toma "+(2*plusTwo)+" cartas y pierde su turno.");
-                            for (int i=0;i<2*plusTwo;i++){
-                                cartaNumero=generarCarta();
-                                robarCarta(jugador,cartaNumero);
-                            }
-                            this.plusTwo=0;
-                            return;
-                        }
-                        else {
-                            if (this.plusFour>0){
-                                System.out.println("El jugador "+jugador+" toma "+(4*plusFour)+" cartas y pierde su turno.");
-                                for (int i=0;i<4*plusFour;i++){
-                                    cartaNumero=generarCarta();
-                                    robarCarta(jugador,cartaNumero);
-                                }
-                                this.plusFour=0;
-                                return;
-                            }
-                        }
-                    }
-                    
-                }
 		//valida que el jugador tenga al menos una carta válida para jugar
 		if(validarMano(jugadores[jugador].getMano())){
 			System.out.println("Es el turno del jugador "+jugador);
@@ -198,7 +180,12 @@ class Juego{
 				while(!flag){ //repite hasta que seleccione una carta válida
 					cartaNumero=seleccionarCarta();
 					if(validarJugada(cartaNumero)){
-						flag=true;
+                                            if(mazo.getCarta(cartaNumero).getValor().equals("+2"))
+                                                this.plusTwo+=1;
+                                            if(mazo.getCarta(cartaNumero).getValor().equals("+4"))
+                                                this.plusFour+=1;
+                                            
+                                            flag=true;
 					}else{
 						System.out.println("No puede jugar esa carta");
 					}
@@ -208,6 +195,11 @@ class Juego{
                                     System.out.println("UNO!");
                                 }
                                 cartaNumero=generarJugada(jugador);
+                                if(mazo.getCarta(cartaNumero).getValor().equals("+2"))
+                                    this.plusTwo+=1;
+                                if(mazo.getCarta(cartaNumero).getValor().equals("+4"))
+                                    this.plusFour+=1;
+                                
 			}
 			this.cartaNumeroPozo=cartaNumero;//
 			this.mazo.setUso(cartaNumero);//
@@ -225,6 +217,70 @@ class Juego{
 		carta=this.mazo.getCarta(this.cartaNumeroPozo);
 		//mostrarPozo(carta);		
 	}
+        
+        private void jugadaSP(int jugador){
+            int cartaNumero=-1;
+            boolean flag=false;
+            Scanner teclado = new Scanner(System.in);
+            if (validarManoSP(jugadores[jugador].getMano())){
+                System.out.println("Es el turno del jugador "+jugador);
+		if(jugador==0){
+                    if (jugadores[0].getMano().largo()==1)
+                        System.out.println("UNO!");
+                    while(!flag){ //repite hasta que seleccione una carta válida
+                        cartaNumero=seleccionarCarta();
+                        if(validarJugadaSP(cartaNumero)){
+                            if(mazo.getCarta(cartaNumero).getValor().equals("+2"))
+                                this.plusTwo+=1;
+                            if(mazo.getCarta(cartaNumero).getValor().equals("+4"))
+                                this.plusFour+=1;
+                            
+                            flag=true;
+                        }
+                        else{
+                            System.out.println("No puede jugar esa carta");
+                        }
+                    }
+                }
+                else{
+                    if (jugadores[jugador].getMano().largo()==1){
+                        System.out.println("UNO!");
+                    }
+                    cartaNumero=generarJugadaSP(jugador);
+                    if(mazo.getCarta(cartaNumero).getValor().equals("+2"))
+                        this.plusTwo+=1;
+                    if(mazo.getCarta(cartaNumero).getValor().equals("+4"))
+                        this.plusFour+=1;
+                    
+                }
+		this.cartaNumeroPozo=cartaNumero;//
+		this.mazo.setUso(cartaNumero);//
+		this.jugadores[jugador].getMano().borrarCarta(this.jugadores[jugador].getMano().buscarCarta(cartaNumero));
+		cantidadCartasRestantes--;
+		System.out.println("Presione enter para continuar");
+		teclado.nextLine(); 
+            } 
+            else {
+                if (this.plusTwo>0){
+                    System.out.println("El jugador "+jugador+" roba "+(2*plusTwo)+" cartas y pierde su turno.");
+                    for (int i=0;i<2*plusTwo;i++){
+                        cartaNumero=generarCarta();
+                        robarCarta(jugador,cartaNumero);
+                    }
+                    this.plusTwo=0;
+                }
+                else {
+                    if (this.plusFour>0){
+                        System.out.println("El jugador "+jugador+" roba "+(4*plusFour)+" cartas y pierde su turno.");
+                        for (int i=0;i<4*plusFour;i++){
+                            cartaNumero=generarCarta();
+                            robarCarta(jugador,cartaNumero);
+                        }
+                        this.plusFour=0;
+                    }
+                }
+            }
+        }
 	// Método que escoge una carta de la mano de un jugador de forma aleatoria
 	// retorna el número de la carta
 	public int generarJugada(int jugador){
@@ -245,6 +301,23 @@ class Juego{
 		return -1;
 	}
 
+	public int generarJugadaSP(int jugador){
+		boolean flag=false;
+		int posicion;
+		int cartaNumero;
+		int largo=jugadores[jugador].getMano().largo();
+
+		while(!flag){
+			posicion = (int)(Math.random()*1000);
+			posicion = posicion%largo;
+			cartaNumero = jugadores[jugador].getMano().getNumeroCarta(posicion);
+			if(validarJugadaSP(cartaNumero)){
+				flag=true;
+				return cartaNumero;
+			}
+		}
+		return -1;
+	}        
 	// Método para mostrar la carta en el tope del pozo
 	private void mostrarPozo(Carta carta){
 		System.out.println("************************************");
@@ -296,19 +369,27 @@ class Juego{
 
 			if(mazo.getCarta(cartaNumeroJugada).getValor().compareTo(mazo.getCarta(this.cartaNumeroPozo).getValor())==0){
 				//System.out.println("Jugada por valor");
-				if(mazo.getCarta(cartaNumeroJugada).getValor().equals("+2"))
-                                    this.plusTwo+=1;
                                 flag=true;
 			}
 			if(mazo.getCarta(cartaNumeroJugada).getColor().compareTo(mazo.getCarta(this.cartaNumeroPozo).getColor())==0){
 				//System.out.println("Jugada por color");
-				flag=true;
+                                flag=true;
 			}
 			if(mazo.getCarta(cartaNumeroJugada).getColor().compareTo("Especial")==0){
 				//System.out.println("Jugada por carta especial");
-                                if(mazo.getCarta(cartaNumeroJugada).getValor().equals("+4"))
-                                    this.plusFour+=1;
 				flag=true;
+			}
+		}
+		return flag;
+	}
+        
+        public boolean validarJugadaSP(int cartaNumeroJugada){
+		boolean flag=false;
+		if(!flag){
+
+			if(mazo.getCarta(cartaNumeroJugada).getValor().compareTo(mazo.getCarta(this.cartaNumeroPozo).getValor())==0){
+				//System.out.println("Jugada por valor");
+                                flag=true;
 			}
 		}
 		return flag;
@@ -324,6 +405,16 @@ class Juego{
 		}
 		return false;
 	}
+        
+	private boolean validarManoSP(Mano mano){
+		int largo = mano.largo();
+		for(int i=0;i<largo;i++){
+			if(validarJugadaSP(mano.getNumeroCarta(i))){
+				return true;
+			}
+		}
+		return false;
+	}        
 	// Método permite a un jugador no computador seleccionar la carta que desea
 	// jugar, se retorna el número de la carta seleccionada de su mano
 	private int seleccionarCarta(){//limitar el numero al largo de la mano 
