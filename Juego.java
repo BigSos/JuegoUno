@@ -1,3 +1,4 @@
+// Integrantes: Diego Maldonado, Javier Contreras, Javiera Henriquez, Ian Sepulveda.
 import java.util.Scanner;
 
 class Juego{
@@ -10,6 +11,7 @@ class Juego{
 	private int cartaNumeroPozo;
         private int plusTwo=0;
         private int plusFour=0;
+        private boolean skip=false;
 
 	Juego(int cantidadJugadores){
 		this.mazo=new Naipe();
@@ -142,7 +144,7 @@ class Juego{
                         if (this.plusFour>0 || this.plusTwo>0)
                             jugadaSP(1);
                         else
-                            jugada(1);                        
+                            jugada(1);                         
 			//System.out.print("\033[H\033[2J");
         	//System.out.flush();
 		}
@@ -171,6 +173,11 @@ class Juego{
 		Carta carta;
 		boolean flag=false;
 		Scanner teclado = new Scanner(System.in);
+                if (skip){
+                    System.out.println("El jugador "+jugador+" pierde su turno");
+                    this.skip=false;
+                }
+                else{
 		//valida que el jugador tenga al menos una carta válida para jugar
 		if(validarMano(jugadores[jugador].getMano())){
 			System.out.println("Es el turno del jugador "+jugador);
@@ -180,11 +187,15 @@ class Juego{
 				while(!flag){ //repite hasta que seleccione una carta válida
 					cartaNumero=seleccionarCarta();
 					if(validarJugada(cartaNumero)){
+                                            if (mazo.getCarta(cartaNumero).getValor().equals("Bloqueo") || mazo.getCarta(cartaNumero).getValor().equals("Sentido"))
+                                                this.skip=true;
                                             if(mazo.getCarta(cartaNumero).getValor().equals("+2"))
                                                 this.plusTwo+=1;
                                             if(mazo.getCarta(cartaNumero).getValor().equals("+4"))
                                                 this.plusFour+=1;
-                                            
+                                            if(mazo.getCarta(cartaNumero).getColor().equals("Especial"))
+                                                cambioColor(cartaNumero);
+                                                
                                             flag=true;
 					}else{
 						System.out.println("No puede jugar esa carta");
@@ -195,11 +206,14 @@ class Juego{
                                     System.out.println("UNO!");
                                 }
                                 cartaNumero=generarJugada(jugador);
+                                if (mazo.getCarta(cartaNumero).getValor().equals("Bloqueo") || mazo.getCarta(cartaNumero).getValor().equals("Sentido"))
+                                    this.skip=true;
                                 if(mazo.getCarta(cartaNumero).getValor().equals("+2"))
                                     this.plusTwo+=1;
                                 if(mazo.getCarta(cartaNumero).getValor().equals("+4"))
                                     this.plusFour+=1;
-                                
+                                if(mazo.getCarta(cartaNumero).getColor().equals("Especial"))
+                                    generarCambioColor(cartaNumero,jugadores[jugador].getMano());
 			}
 			this.cartaNumeroPozo=cartaNumero;//
 			this.mazo.setUso(cartaNumero);//
@@ -217,7 +231,7 @@ class Juego{
 		carta=this.mazo.getCarta(this.cartaNumeroPozo);
 		//mostrarPozo(carta);		
 	}
-        
+        }
         private void jugadaSP(int jugador){
             int cartaNumero=-1;
             boolean flag=false;
@@ -229,12 +243,14 @@ class Juego{
                         System.out.println("UNO!");
                     while(!flag){ //repite hasta que seleccione una carta válida
                         cartaNumero=seleccionarCarta();
-                        if(validarJugadaSP(cartaNumero)){
+                        if(validarJugada(cartaNumero)){
                             if(mazo.getCarta(cartaNumero).getValor().equals("+2"))
                                 this.plusTwo+=1;
                             if(mazo.getCarta(cartaNumero).getValor().equals("+4"))
                                 this.plusFour+=1;
-                            
+                            if(mazo.getCarta(cartaNumero).getColor().equals("Especial"))
+                                cambioColor(cartaNumero);
+                                                
                             flag=true;
                         }
                         else{
@@ -251,7 +267,8 @@ class Juego{
                         this.plusTwo+=1;
                     if(mazo.getCarta(cartaNumero).getValor().equals("+4"))
                         this.plusFour+=1;
-                    
+                    if(mazo.getCarta(cartaNumero).getColor().equals("Especial"))
+                        generarCambioColor(cartaNumero,jugadores[jugador].getMano());
                 }
 		this.cartaNumeroPozo=cartaNumero;//
 		this.mazo.setUso(cartaNumero);//
@@ -430,6 +447,76 @@ class Juego{
 		return jugadores[0].getMano().getNumeroCarta(carta-1);
 	}
         
+	private void cambioColor(int cartaNumero){
+            Scanner teclado = new Scanner(System.in);
+            String input;
+            int color;
+            System.out.println("Selecciona un color:");
+            System.out.println("************************************");
+            System.out.println("1 - Rojo");
+            System.out.println("2 - Azul");
+            System.out.println("3 - Amarillo");
+            System.out.println("4 - Verde");
+            System.out.println("************************************");
+            input=teclado.nextLine();
+            color = Integer.parseInt(input);
+            if (color>4 || color<1){
+                while (color>4 || color<1){
+                System.out.println("Por favor ingrese un numero valido.");
+                input=teclado.nextLine();
+                color = Integer.parseInt(input);
+                }        
+            }
+            if (color==1)
+                mazo.getCarta(cartaNumero).setColor("Rojo");
+            if (color==2)
+                mazo.getCarta(cartaNumero).setColor("Azul");
+            if (color==3)
+                mazo.getCarta(cartaNumero).setColor("Amarillo");
+            if (color==4)
+                mazo.getCarta(cartaNumero).setColor("Verde");
+                
+        }
+        
+        private void generarCambioColor(int cartaNumero,Mano mano){
+            int color=-1;
+            int rojo=0;
+            int azul=0;
+            int amarillo=0;
+            int verde=0;
+            int largo = mano.largo();
+            for(int i=0;i<largo;i++){
+                if(mazo.getCarta(mano.getNumeroCarta(i)).getColor().equals("Rojo"))
+                    rojo+=1;
+                if(mazo.getCarta(mano.getNumeroCarta(i)).getColor().equals("Azul"))
+                    azul+=1;
+                if(mazo.getCarta(mano.getNumeroCarta(i)).getColor().equals("Amarillo"))
+                    amarillo+=1;
+                if(mazo.getCarta(mano.getNumeroCarta(i)).getColor().equals("Verde"))
+                    verde+=1;
+            }
+            if (rojo>azul && rojo>amarillo && rojo>verde)
+                color=1;
+            if (azul>rojo && azul>amarillo && azul>verde)
+                color=2;
+            if (amarillo>rojo && amarillo>azul && amarillo>verde)
+                color=3;
+            if (verde>rojo && verde>amarillo && verde>azul)
+                color=4;
+            if (color==-1)
+                color= (int) ((Math.random() * 4) + 1);
+		
+                        
+            if (color==1)
+                mazo.getCarta(cartaNumero).setColor("Rojo");
+            if (color==2)
+                mazo.getCarta(cartaNumero).setColor("Azul");
+            if (color==3)
+                mazo.getCarta(cartaNumero).setColor("Amarillo");
+            if (color==4)
+                mazo.getCarta(cartaNumero).setColor("Verde");
+                
+        }
         // Método que asigna una carta a un jugador y la agrega a su mano
         private void robarCarta(int jugador,int cartaNumero){
 		this.jugadores[jugador].getMano().agregarCarta(this.mazo.getCarta(cartaNumero),cartaNumero);
