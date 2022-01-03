@@ -438,12 +438,33 @@ class Juego{
 		Scanner teclado = new Scanner(System.in);
 		String input;
 		int carta;
+                boolean flag=false;
 		//jugador 0 es el jugador no computador
 		mostrarMano(0);
 		System.out.println("Seleccione la carta a jugar");
 		System.out.println("Ingrese el número de la carta");
 		input=teclado.nextLine();
-		carta = Integer.parseInt(input);
+                for (int i=1;i<=jugadores[0].getMano().largo();i++){
+                    if (input.equals(""+i)){
+                        flag=true;
+                        break;
+                    }
+                }
+                if (!flag){
+                    while (!flag){
+                        System.out.println("Por favor ingrese una opcion valida");
+                        input=teclado.nextLine();
+                        for (int i=1;i<=jugadores[0].getMano().largo();i++){
+                            if (input.equals(""+i)){
+                                flag=true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                carta = Integer.parseInt(input);
+                   
+
 		return jugadores[0].getMano().getNumeroCarta(carta-1);
 	}
         
